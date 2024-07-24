@@ -226,8 +226,9 @@ def main():
 
         if round_ == 1:
             train(args, model, device, train_subset, optimizer, epoch, False, False, 26)
-        
-            test(model, device, degradation_subset, use_indices, use_db, False, 0, "Calculating Nthiles")
+
+            #Storing Activations
+            test(model, device, degradation_subset, use_indices, use_db, False, 0, "Storing Activations")
 
             if use_indices == True:
                 print("Calculating Quantiles...")

@@ -69,16 +69,18 @@ class EideticLinearLayer(nn.Module):
                
                 self.quantiles.append(inner_quantile)
 
-    
     def binarySearchQuantiles(self, activation, index):
         
-        for i in range(0, len(self.quantiles[index])):
-                    if activation <= self.quantiles[index][i]:
+        output_node_list_of_quantile_bounds = self.quantiles[index]
+        _length = len(output_node_list_of_quantile_bounds)
+
+        for i in range(0, _length):
+                    if activation <= output_node_list_of_quantile_bounds[i]:
 
                         return i
 
-        if activation > self.quantiles[index][len(self.quantiles[index]) -1]:
-            return len(self.quantiles[index]) 
+        if activation > output_node_list_of_quantile_bounds[-1]:
+            return len(output_node_list_of_quantile_bounds) 
         
 
         return 0
@@ -133,7 +135,7 @@ class IndexedLinearLayer(nn.Module):
         self.param_index = nn.ParameterList()
         self.device_to_use = os.getenv("DEVICE")
 
-        # #Copy weights across indices from the trained weight vector
+        # Intitialzing parameter list of weights to use in indexing
         for i in range(0, num_quantiles):
             for j in range(0, self.size_in):
                 weights = torch.Tensor(self.size_out)
