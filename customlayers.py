@@ -71,17 +71,29 @@ class EideticLinearLayer(nn.Module):
 
     
     def binarySearchQuantiles(self, activation, index):
-        
-        for i in range(0, len(self.quantiles[index])):
-                    if activation <= self.quantiles[index][i]:
 
-                        return i
-
-        if activation > self.quantiles[index][len(self.quantiles[index]) -1]:
-            return len(self.quantiles[index]) 
-        
-
-        return 0
+        return self.__bsqHelper(activation, index, 0, len(self.quantiles[index]))
+     
+    def __bsqHelper(self, activation, index, l, r):
+        quantiles = self.quantiles[index]
+        # Integer division, 5 // 2 == 2
+        mid = (r + l) // 2
+        greater = int(activation > quantiles[mid])
+        if mid == 0 or mid >= len(quantiles) - 1:
+            return mid + greater
+    
+        if activation >= quantiles[mid]:
+            # activation is between bounds
+            if activation < quantiles[mid + 1]:
+                return mid + greater
+            # activation is not at its lower bound
+            else:
+                l = mid
+                return self.__bsqHelper(activation, index, l, r)
+        # Activation not at its upper bound
+        else:
+            r = mid
+            return self.__bsqHelper(activation, index, l, r)
         
     def forward(self, x, store_activations, get_indices, use_db):
         w_times_x= torch.mm(x, self.weights.t())
@@ -256,20 +268,29 @@ class EideticIndexedLinearLayer(nn.Module):
                     self.quantiles.append(inner_quantile)
 
     def binarySearchQuantiles(self, activation, index):
-        
-        output_node_list_of_quantile_bounds = self.quantiles[index]
-        _length = len(output_node_list_of_quantile_bounds)
 
-        for i in range(0, _length):
-                    if activation <= output_node_list_of_quantile_bounds[i]:
-
-                        return i
-
-        if activation > output_node_list_of_quantile_bounds[-1]:
-            return len(output_node_list_of_quantile_bounds) 
-        
-
-        return 0
+        return self.__bsqHelper(activation, index, 0, len(self.quantiles[index]))
+     
+    def __bsqHelper(self, activation, index, l, r):
+        quantiles = self.quantiles[index]
+        # Integer division, 5 // 2 == 2
+        mid = (r + l) // 2
+        greater = int(activation > quantiles[mid])
+        if mid == 0 or mid >= len(quantiles) - 1:
+            return mid + greater
+    
+        if activation >= quantiles[mid]:
+            # activation is between bounds
+            if activation < quantiles[mid + 1]:
+                return mid + greater
+            # activation is not at its lower bound
+            else:
+                l = mid
+                return self.__bsqHelper(activation, index, l, r)
+        # Activation not at its upper bound
+        else:
+            r = mid
+            return self.__bsqHelper(activation, index, l, r)
     
     def build_index(self, num_quantiles):
 
